@@ -199,13 +199,10 @@
 			mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
 			mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
 
-            console.log(mouse.x, mouse.y);
-
 			raycaster.setFromCamera( mouse, camera );
 
 			var intersects = raycaster.intersectObjects(scene.children);
 
-            console.log(intersects);
     		if ( intersects.length > 0 ) {
                 selectedfirst = intersects[1].object;
                 facefirst = intersects[0].object;
@@ -222,7 +219,9 @@
 			mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
 
             raycaster.setFromCamera( mouse, camera );
+
 			var intersects = raycaster.intersectObjects(scene.children);
+            
             if (transform) {
                 if (intersects.length > 0) {
                     selectedlast = intersects[1].object;
