@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script src="https://unpkg.com/three@0.87.1/build/three.js"></script>
+    <script src="https://unpkg.com/three@0.87.1/examples/js/controls/OrbitControls.js"></script>
+
+
+    <script type="module">
+        let scene, camera, renderer, cube, controls;
+        var rubik;
+
+        var Goldenrod = "rgba(255,193,37,1)";
+        var DeepSkyBlue = "rgba(0,191,255,1)";
+        var White = "rgba(255,255,255,1)";
+        var Black = "rgba(0,0,0,1)";
+        var LimeGreen = "rgba(50,205,50,1)";
+        var Firebrick = "rgba(178,34,34,1)";
+        var Yellow = "rgba(255,255,0,1)";
+
+        // 初始化
+        function initial() {
+            scene = new THREE.Scene();
+
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
+
+            renderer = new THREE.WebGLRenderer({
+                antialias: true
+            });
+
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            document.body.appendChild(renderer.domElement);
+
+            camera.position.set(0, 4, 10);
+        }
+
+        function drawFaces(rgbaColor) {
+            var canvas = document.createElement("canvas");
+            canvas.width = 256;
+            canvas.height = 256;
+            var context = canvas.getContext("2d");
+            if (context) {
+                // 3
+                context.fillStyle = "rgba(0,0,0,1)";
+                context.fillRect(0, 0, 256, 256);
+                context.rect(16, 16, 224, 224);
+                context.lineJoin = "round";
+                context.lineWidth = 16;
+                context.fillStyle = rgbaColor;
+                context.strokeStyle = rgbaColor;
+                context.stroke();
+                context.fill();
+
+            } else {
+                alert('您的浏览器不支持Canvas无法预览.\n');
+            }
+            return canvas;
+        }
+
+        // 单个立方体
+        function sampleCube(x, y, z) {
+            // ---------------------------------------------------
+            // face 颜色
+            // const colors = ['rgba(255,193,37,1)', 'rgba(0,191,255,1)', 'rgba(255,255,255,1)', 'rgba(0,0,0,1)', 'rgba(50,205,50,1)', 'rgba(178,34,34,1)'];
+            // const faces = [];
+            // const materials = [];
+            // for(const c of colors) {
+            //     const texture = faces.push(new THREE.Texture(drawFaces(c)));
+            //     const material = new THREE.MeshLambertMaterial({
+            //         map: texture
+            //     })
+            //     materials.push(material);
+            // }
+
+            // const geometry = new THREE.BoxGeometry(1, 1, 1);
+
+            // var mesh = new THREE.Mesh(geometry, materials);
+
+            // mesh.position.set(x, y, z);
+
+            // scene.add(mesh);
+
+
+            // ---------------------------------------------------
+            const colors = [0xFF7F50, 0x9B30FF, 0x9ACD32, 0x63B8FF, 0xc41e3a, 0xffffff];
+
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            let materialArray = [];
+
+            for(const c of colors) {
+
+                var cubeMaterial = new THREE.MeshBasicMaterial({ color : c})
+
+                materialArray.push(cubeMaterial);
+            }
+            
+            cube = new THREE.Mesh(geometry, materialArray);
+
+            cube.position.set(x , y , z );
+
+            scene.add(cube);
+
+            var border = new THREE.BoxHelper(cube, '#000000');
+
+            scene.add(border);
+
+            //-----------------------------------------------
+            // 加载图片
+            // var texture = new THREE.TextureLoader().load( './2.jpg' );
+
+            // texture.wrapS = THREE.RepeatWrapping;
+            // texture.wrapT = THREE.RepeatWrapping;
+            // texture.repeat.set( 3, 3);
+
+            // var geometry = new THREE.BoxBufferGeometry( 5, 5, 5 );
+
+            // var material = new THREE.MeshBasicMaterial( { map: texture } );
+
+            // cube = new THREE.Mesh( geometry, material );
+            // scene.add( cube );
+        }
+
+        // 控制器
+        function control() {
+            controls = new THREE.OrbitControls(camera, renderer.domElement); 
+        }
+
+
+        // 渲染
+        function render() {
+            requestAnimationFrame(render);
+
+            controls.update();
+
+            // cube.rotation.x += 0.01;
+
+            // cube.rotation.y += 0.01;
+
+            renderer.render(scene, camera);
+        }
+
+        // 生成魔方
+        function createCube(){
+            for(let x = 0; x < 3; x++){
+                for(let y = 0; y < 3; y++){
+                    for(let z = 0; z < 3; z++){
+                        sampleCube(x, y, z);
+                    }
+                }
+            }
+        }
+
+
+        //开始操作魔方
+        function startCube(event){
+            getIntersects(event);
+            //魔方没有处于转动过程中且存在碰撞物体
+            if(!isRotating&&intersect){
+                startPoint = intersect.point;//开始转动，设置起始点
+                controller.enabled = false;//当刚开始的接触点在魔方上时操作为转动魔方，屏蔽控制器转动
+            }else{
+                controller.enabled = true;//当刚开始的接触点没有在魔方上或者在魔方上但是魔方正在转动时操作转动控制器
+            }
+        }
+        //获取操作焦点以及该焦点所在平面的法向量
+        function getIntersects(event){
+            //触摸事件和鼠标事件获得坐标的方式有点区别
+            if(event.touches){
+                var touch = event.touches[0];
+                mouse.x = (touch.clientX / width)*2 - 1;
+                mouse.y = -(touch.clientY / height)*2 + 1;
+            }else{
+                mouse.x = (event.clientX / width)*2 - 1;
+                mouse.y = -(event.clientY / height)*2 + 1;
+            }
+            raycaster.setFromCamera(mouse, camera);
+            //Raycaster方式定位选取元素，可能会选取多个，以第一个为准
+            var intersects = raycaster.intersectObjects(scene.children);
+            if(intersects.length){
+                try{
+                    if(intersects[0].object.cubeType==='coverCube'){
+                        intersect = intersects[1];
+                        normalize = intersects[0].face.normal;
+                    }else{
+                        intersect = intersects[0];
+                        normalize = intersects[1].face.normal;
+                    }
+                }catch(err){
+                    //nothing
+                }
+            }
+        }
+
+        initial();
+
+        createCube();
+
+        control();
+
+        render();
+
+
+    </script>
+</body>
+</html>

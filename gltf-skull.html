@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script src="https://unpkg.com/three@0.87.1/build/three.js"></script>
+    <script src="https://unpkg.com/three@0.87.1/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://unpkg.com/three@0.87.1/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/gsap/1.18.0/TweenMax.min.js"></script>
+    <script type="module">
+        let scene, camera, renderer, cube, controls;
+        let skull;
+
+        // 初始化
+        function initial(){
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xa0a0a0);
+            scene.fog = new THREE.Fog(0xa0a0a0, 10, 50);
+
+
+            const hemiLight = new THREE.HemisphereLight( 0xffffff, 0x444444 );
+            hemiLight.position.set( 0, 20, 0 );
+            scene.add( hemiLight );
+            
+
+            camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            controls = new THREE.OrbitControls( camera, renderer.domElement );
+            document.body.appendChild(renderer.domElement);
+            camera.position.set(0,0,0);
+            // scene.background = new THREE.Color( '#ffffff' );
+            // 光源
+            // var light = new THREE.PointLight( 0xffffcc, 20, 200 );
+            // light.position.set( 4, 30, -20 );
+            // scene.add( light );
+
+            const light = new THREE.PointLight('#ffffff', 2, 200);
+            light.position.set( 0, 20, 0 );
+            scene.add( light );
+
+            // var light2 = new THREE.AmbientLight();
+            // light2.position.set( 30, -10, 30 );
+            // scene.add( light2 );
+            
+        }
+
+        // GLTF
+        function createModel(){
+
+            const loader = new THREE.GLTFLoader();
+
+            loader.crossOrigin = true;
+
+            loader.load( './model/scene.gltf', (data) => {
+
+                skull = data.scene;
+                skull.position.set(0,0,-2);
+
+                scene.add( skull );
+                
+                function animation() {
+
+                    requestAnimationFrame(animation);
+
+                    skull.rotation.y += 0.01;
+                }
+
+                animation();
+            });
+        }
+
+        function controller(){
+
+            
+
+
+            // controls.rotateSpeed = 0.1;
+            // controls.zoomSpeed = 0.1;
+
+            // controls.minDistance = 3;
+            // controls.maxDistance = 20;
+
+            // controls.minPolarAngle = 0; // radians
+            // controls.maxPolarAngle = Math.PI /2; // radians
+
+            // controls.enableDamping = true;
+            // controls.dampingFactor = 0.05;
+
+            
+        }
+
+        // 渲染
+        function render(){
+            requestAnimationFrame(render);
+            controls.update();
+            renderer.render( scene, camera);
+        }
+
+
+        initial();
+
+        createModel();
+
+        controller();
+
+        render();
+
+    </script>
+</body>
+</html>
